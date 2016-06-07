@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Flowchart</title>
+<title>GoArena</title>
 <meta name="description" content="Interactive flowchart diagram implemented by GoJS in JavaScript for HTML." />
-<!-- Copyright 1998-2016 by Northwoods Software Corporation. -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
 <meta charset="UTF-8">
 <script src="go.js"></script>
 <script id="code">
@@ -85,7 +86,7 @@
           $(go.Shape, "Rectangle",
             { fill: "#00A9C9", stroke: null },
             new go.Binding("figure", "figure")),
-          $(go.TextBlock, 
+          $(go.TextBlock,
             {
               font: "bold 11pt Helvetica, Arial, sans-serif",
               stroke: lightText,
@@ -108,7 +109,7 @@
         $(go.Panel, "Auto",
           $(go.Shape, "Circle",
             { minSize: new go.Size(40, 40), fill: "#79C900", stroke: null }),
-          $(go.TextBlock, 
+          $(go.TextBlock,
             { font: "bold 11pt Helvetica, Arial, sans-serif", stroke: lightText, editable: true },
             new go.Binding("text").makeTwoWay())
         ),
@@ -201,7 +202,7 @@
     myDiagram.toolManager.linkingTool.temporaryLink.routing = go.Link.Orthogonal;
     myDiagram.toolManager.relinkingTool.temporaryLink.routing = go.Link.Orthogonal;
 
-    load();  // load an initial diagram from some JSON text
+    //load();  // load an initial diagram from some JSON text
 
     // initialize the Palette that is on the left side of the page
     myPalette =
@@ -210,10 +211,10 @@
           "animationManager.duration": 800, // slightly longer than default (600ms) animation
           nodeTemplateMap: myDiagram.nodeTemplateMap,  // share the templates used by myDiagram
           model: new go.GraphLinksModel([  // specify the contents of the Palette
-            { category: "Start", text: "Start" },
+            { category: "Start", text: "Fila" },
             { category: "Server", text: "\u03BB-\u03BC" },
             //{ text: "???", figure: "Diamond" },
-            { category: "End", text: "End" },
+            { category: "End", text: "Saída" },
             //{ category: "Comment", text: "Comment" }
           ])
         });
@@ -236,7 +237,13 @@
     myDiagram.isModified = false;
   }
   function load() {
-    //myDiagram.model = go.Model.fromJson(document.getElementById("mySavedModel").value);
+    myDiagram.model = go.Model.fromJson({
+        "class": "go.GraphLinksModel",
+        "linkFromPortIdProperty": "fromPort",
+        "linkToPortIdProperty": "toPort",
+        "nodeDataArray": [],
+        "linkDataArray": []
+    });
   }
 
   // add an SVG rendering of the diagram at the end of this page
@@ -254,15 +261,133 @@
 
   function calc() {
     var dados = JSON.parse(myDiagram.model.toJson());
-    var datas = dados['nodeDataArray']
+    var datas = dados['nodeDataArray'];
+    var servidores = [];
+    var fila = [];
 
     for (var index in datas) {
       if (datas[index].category == 'Server') {
-        alert(datas[index].text) 
+        infoServer = datas[index].text.split("-")
+        servidores.push({
+          id:   index,
+          lambda: infoServer[0],
+          mi: infoServer[1],
+        })
+      }
+      if (datas[index].category == 'Start') {
+        fila.push({
+          id:   index,
+          tamanhoFila: datas[index].text,
+        })
       }
     }
 
+    if (servidores.length == 0) {
+        alert("Erro: Por favor incluir servidor.");
+        return;
+    }
 
+    if (fila.length != 1) {
+        alert("Erro: Por favor verificar o componente fila.");
+        return;
+    }
+
+    if (servidores.length == 1 && fila[0].tamanhoFila == "Fila"){
+        var div = document.getElementById("result")
+        resultado = MM1(servidores[0].lambda, servidores[0].mi);
+        div.innerHTML = div.innerHTML + resultado;
+        return;
+    }
+
+    if (servidores.length > 1 && fila[0].tamanhoFila == "Fila") {
+        console.log(fila[0].tamanhoFila)
+        var div = document.getElementById("result")
+        resultado = MMm(servidores[0].lambda, servidores[0].mi);
+        div.innerHTML = div.innerHTML + resultado;
+        return;
+    }
+
+    if (servidores.length > 1 && fila[0].tamanhoFila > 0) {
+        console.log(fila[0].tamanhoFila)
+        var div = document.getElementById("result")
+        resultado = MMmb(servidores[0].lambda, servidores[0].mi);
+        div.innerHTML = div.innerHTML + resultado;
+        return;
+    }
+
+  }
+
+  function limpar() {
+    var element = document.getElementById("resultado");
+    element.parentNode.removeChild(element);
+    load();
+  }
+
+  function MMmb(lambda, mi) {
+    var resultado = `<div id="resultado">falta implementar MMmb.</div>`;
+    return resultado;
+  }
+
+  function MMm(lambda, mi) {
+    var resultado = `<div id="resultado">falta implementar MMm</div>`;
+    return resultado;
+  }
+
+  function MM1(lambda, mi) {
+    var resultado = `<table id="resultado" class="table">
+      <caption></caption>
+      <thead>
+        <tr>
+          <td>M/M/1</td>
+          <td>FÓRMULA</td>
+          <td>VALOR FINAL</td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>TAXA DE CHEGADA</td>
+          <td>LAMBDA</td>
+          <td>` + lambda + `</td>
+        </tr>
+        <tr>
+          <td>TAXA DE SERVIÇO</td>
+          <td>MI</td>
+          <td>` + mi + `</td>
+        </tr>
+        <tr>
+          <td>FATOR DE USO</td>
+          <td>e</td>
+          <td>` + (lambda / mi) + `</td>
+        </tr>
+        <tr>
+          <td>PROBABILIDADE ZERO ELEMENTO</td>
+          <td> 1 - e </td>
+          <td>` + (1 - (lambda / mi)) + `</td>
+        </tr>
+        <tr>
+          <td>TEMPO MÉDIO DE RESPOSTA</td>
+          <td> 1 / (mi - e) </td>
+          <td>` + (1 / (mi - (lambda / mi))) + `</td>
+        </tr>
+        <tr>
+          <td>TEMPO MÉDIO NA FILA</td>
+          <td> e / (mi - lambda) </td>
+          <td>` + ((lambda / mi) / (mi - lambda)) + `</td>
+        </tr>
+        <tr>
+          <td>NÚMERO MÉDIO ELEMENTOS NO SISTEMA</td>
+          <td> e / (1 - e) </td>
+          <td>` + (((lambda / mi) / (1 - (lambda / mi)))) + `</td>
+        </tr>
+        <tr>
+          <td>NÚMERO MÉDIO ELEMENTOS NA FILA</td>
+          <td> e2 / (1 - e) </td>
+          <td>` + (Math.pow((lambda / mi), 2) / (1 - (lambda / mi))) + `</td>
+        </tr>
+      </tbody>
+    </table>`
+
+    return resultado
   }
 </script>
 </head>
@@ -277,8 +402,12 @@
       <div id="myDiagramDiv" style="border: solid 1px gray; height: 400px"></div>
     </span>
   </div>
-  <button onclick="calc();">visualizar os resultados</button>
-  <div id="result"></div>
+  <button onclick="limpar();">Limpar</button>
+  <button onclick="calc();">Calcular</button>
+  <span> Versão 0.0.0.0 (alpha) <span>
+</div>
+<div id="result"></div>
+
 </div>
 </body>
 </html>
