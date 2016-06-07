@@ -254,6 +254,8 @@
     var fila = [];
     var saida = [];
 
+    limparResultado();
+
     for (var index in datas) {
       if (datas[index].category == 'Server') {
         infoServer = datas[index].text.split("-")
@@ -321,7 +323,9 @@
 
   function limparResultado() {
     var element = document.getElementById("resultado");
-    element.parentNode.removeChild(element);
+    if (element) {
+      element.parentNode.removeChild(element);
+    }
   }
 
   function adicionarResultado(msg) {
