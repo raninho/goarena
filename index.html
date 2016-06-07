@@ -422,27 +422,27 @@
         </tr>
         <tr>
           <td>PROBABILIDADE ZERO ELEMENTO</td>
-          <td> 1 - &rho; </td>
+          <td> P(0) = 1 - &rho; </td>
           <td>` + (1 - (lambda / mi)) + `</td>
         </tr>
         <tr>
           <td>TEMPO MÉDIO DE RESPOSTA</td>
-          <td> 1 / (&mu; - &rho;) </td>
+          <td> E[w] = 1 / (&mu; - &rho;) </td>
           <td>` + (1 / (mi - (lambda / mi))) + `</td>
         </tr>
         <tr>
           <td>TEMPO MÉDIO NA FILA</td>
-          <td> &rho; / (&mu; - &lambda;) </td>
+          <td> E[wq] = &rho; / (&mu; - &lambda;) </td>
           <td>` + ((lambda / mi) / (mi - lambda)) + `</td>
         </tr>
         <tr>
           <td>NÚMERO MÉDIO ELEMENTOS NO SISTEMA</td>
-          <td> &rho; / (1 - &rho;) </td>
+          <td> E[n] = &rho; / (1 - &rho;) </td>
           <td>` + (((lambda / mi) / (1 - (lambda / mi)))) + `</td>
         </tr>
         <tr>
           <td>NÚMERO MÉDIO ELEMENTOS NA FILA</td>
-          <td> &rho;2 / (1 - &rho;) </td>
+          <td> E[nq] = &rho;<sup>2</sup> / (1 - &rho;) </td>
           <td>` + (Math.pow((lambda / mi), 2) / (1 - (lambda / mi))) + `</td>
         </tr>
       </tbody>
