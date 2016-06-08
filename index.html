@@ -351,13 +351,13 @@
   function loadMMm() {
     myDiagram.model = go.Model.fromJson({
 	"class": "go.GraphLinksModel",
-	"nodeDataArray": [ 
+	"nodeDataArray": [
 	{"category":"Start", "text":"Fila ∞", "key":-1, "loc":"-281.890625 -39"},
 	{"category":"Server", "text":"10-19", "key":-2, "loc":"-115.89062500000006 -92.00000000000003"},
 	{"category":"End", "text":"Saída", "key":-3, "loc":"30.109375 -39"},
 	{"category":"Server", "text":"10-19", "key":-4, "loc":"-112.875 9"}
 	 ],
-	  "linkDataArray": [ 
+	  "linkDataArray": [
 	{"from":-1, "to":-2, "points":[-251.8116398301235,-39,-241.8116398301235,-39,-197.69219686818678,-39,-197.69219686818678,-92.00000000000003,-153.57275390625006,-92.00000000000003,-143.57275390625006,-92.00000000000003]},
 	{"from":-2, "to":-3, "points":[-88.20849609375006,-92.00000000000003,-78.20849609375006,-92.00000000000003,-43.84154137899712,-92.00000000000003,-43.84154137899712,-39,-9.474586664244189,-39,0.5254133357558111,-39]},
 	{"from":-1, "to":-4, "points":[-251.8116398301235,-39,-241.8116398301235,-39,-196.18438436818676,-39,-196.18438436818676,9,-150.55712890625,9,-140.55712890625,9]},
@@ -404,6 +404,7 @@
 
 
   function MMm(lambda, mi, m) {
+    var ro = (lambda / (m * mi))
     var resultado = `<table id="resultado" class="table table-striped table-bordered">
       <caption></caption>
       <thead>
@@ -427,17 +428,17 @@
         <tr>
           <td>INTESIDADE</td>
           <td>&rho; = &lambda; / (m.&mu;)</td>
-          <td>` + (lambda / (m * mi)) + `</td>
+          <td>` + ro + `</td>
         </tr>
         <tr>
           <td>PROBABILIDADE ZERO ELEMENTO</td>
           <td> P(0) = ? </td>
-          <td>` + `Falta implementar` + `</td>
+          <td>` + mmmProbabilizadeZero(ro, m) + `</td>
         </tr>
         <tr>
           <td>TEMPO MÉDIO DE RESPOSTA</td>
           <td> E[w] = ? </td>
-          <td>` + `Falta implementar` + `</td>
+          <td>` + ( 1/mi * (1 + (erlangC(m, ro) / (m * (1 - ro))))) + `</td>
         </tr>
         <tr>
           <td>TEMPO MÉDIO NA FILA</td>
@@ -520,6 +521,34 @@
   function MMmb(lambda, mi) {
     var resultado = `<div id="resultado"><p class="bg-info">Falta implementar MMmb.</p></div>`;
     return resultado;
+  }
+
+  function factorial(n) {
+    var rval=1;
+    for (var i = 2; i <= n; i++)
+      rval = rval * i;
+    return rval;
+  }
+
+  function mmmProbabilizadeZero(ro, m) {
+    var denominador1 = (Math.pow(m * ro, m) / (factorial(m) * (1 - ro)));
+    var denominador2 = 0;
+
+    for (var n=0; n < m; n++) {
+        denominador2 = denominador2 + ( Math.pow(m * ro, n) / factorial(n));
+    }
+
+    return (1 / (denominador1 + denominador2));
+
+  }
+
+  function erlangC(a, n) {
+    var l = ( (Math.pow(a, n) / factorial(n)) * (n / (n-a)) );
+    var sum = 0;
+    for (var i=0; i < n; i++) {
+      sum = sum + (Math.pow(a, i) / factorial(i));
+    }
+    return (l / (sum + l))
   }
 </script>
 
