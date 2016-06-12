@@ -111,7 +111,7 @@
             { minSize: new go.Size(40, 40), fill: "#79C900", stroke: null }),
           $(go.TextBlock,
             { font: "bold 11pt Helvetica, Arial, sans-serif", stroke: lightText, editable: true },
-            new go.Binding("text"))
+            new go.Binding("text").makeTwoWay())
         ),
         // three named ports, one on each side except the top, all output only:
         makePort("L", go.Spot.Left, true, false),
@@ -291,7 +291,7 @@
     }
 
     if (saida.length != 1) {
-        resultado = `<div id="resultado"><p class="bg-danger">Erro: Por favor verificar o componente Saída.</p></div>`
+        resultado = `<div id="resultado"><div class="alert alert-error">Erro: Por favor verificar o componente Saída.</div></div>`
         adicionarResultado(resultado);
         return;
     }
@@ -309,7 +309,7 @@
     }
 
     if (servidores.length > 0 && fila[0].tamanhoFila > 0) {
-        resultado = MMmb(servidores[0].lambda, servidores[0].mi);
+        resultado = MMmb(servidores[0].lambda, servidores[0].mi, servidores.length, fila[0].tamanhoFila);
         adicionarResultado(resultado);
         return;
     }
@@ -443,7 +443,7 @@
         <tr>
           <td>TEMPO MÉDIO NA FILA</td>
           <td> E[wq] = ? </td>
-          <td>` + `Falta implementar` + `</td>
+          <td>` + ( (erlangC(m, ro)) / (m * mi * (1 - ro))) + `</td>
         </tr>
         <tr>
           <td>NÚMERO MÉDIO ELEMENTOS NO SISTEMA</td>
@@ -453,7 +453,7 @@
         <tr>
           <td>NÚMERO MÉDIO ELEMENTOS NA FILA</td>
           <td> E[nq] = ? </td>
-          <td>` + `Falta implementar` + `</td>
+          <td>` + ( (ro * erlangC(m, ro)) / (1 - ro)) + `</td>
         </tr>
       </tbody>
     </table>`
@@ -518,16 +518,97 @@
     return resultado
   }
 
-  function MMmb(lambda, mi) {
-    var resultado = `<div id="resultado"><p class="bg-info">Falta implementar MMmb.</p></div>`;
-    return resultado;
-  }
+  function MMmb(lambda, mi, m, b) {
+    var ro = (lambda / (m * mi))
+    var pzero = mmmbProbabilidadeZero(ro, m, b)
 
-  function factorial(n) {
-    var rval=1;
-    for (var i = 2; i <= n; i++)
-      rval = rval * i;
-    return rval;
+    var resultado = `<table id="resultado" class="table table-bordered">
+      <caption></caption>
+      <thead>
+        <tr>
+          <td>M/M/m/b</td>
+          <td>FÓRMULA</td>
+          <td>VALOR FINAL</td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>TAXA DE CHEGADA</td>
+          <td><b>&lambda;</b></td>
+          <td><b>` + lambda + `</b></b></td>
+        </tr>
+        <tr>
+          <td>TAXA DE SERVIÇO</td>
+          <td><b>&mu;</b></td>
+          <td><b>` + mi + `</b></td>
+        </tr>
+        <tr>
+          <td>NÚMERO DE SERVIDORES</td>
+          <td><b>m</b></td>
+          <td><b>` + m + `</b></td>
+        </tr>
+        <tr>
+          <td>NÚMERO DE BUFFER</td>
+          <td><b>b</b></td>
+          <td><b>` + b + `</b></td>
+        </tr>
+        <tr>
+          <td>FATOR DE USO</td>
+          <td>
+            <figure>
+              <img src="img/mmmb/fatordeuso.png" alt="Minha Figura">
+            </figure>
+          </td>
+          <td><b>` + ro + `</b></td>
+        </tr>
+        <tr>
+          <td>PROBABILIDADE ZERO ELEMENTO</td>
+          <td>
+            <figure>
+              <img src="img/mmmb/pzero.png" alt="Minha Figura">
+            </figure>
+          </td>
+          <td><b>` + pzero + `</b></td>
+        </tr>
+        <tr>
+          <td>TEMPO MÉDIO DE RESPOSTA</td>
+          <td>
+            <figure>
+              <img src="img/mmmb/tmresposta.png" alt="Minha Figura">
+            </figure>
+          </td>
+          <td><b>` + (mmmbEN(ro, m, b, pzero) / (lambda * (1 - mmmbProbabilidadeN(ro, m, b, pzero)))) + `</b></td>
+        </tr>
+        <tr>
+          <td>TEMPO MÉDIO NA FILA</td>
+          <td>
+            <figure>
+              <img src="img/mmmb/tmfila.png" alt="Minha Figura">
+            </figure>
+          </td>
+          <td><b>` + (mmmbENq(ro, m, b, pzero) / (lambda * (1 - mmmbProbabilidadeN(ro, m, b, pzero)))) + `</b></td>
+        </tr>
+        <tr>
+          <td>NÚMERO MÉDIO ELEMENTOS NO SISTEMA</td>
+          <td>
+            <figure>
+              <img src="img/mmmb/nmsistema.png" alt="Minha Figura">
+            </figure>
+          </td>
+          <td><b>` + mmmbEN(ro, m, b, pzero) + `</b></td>
+        </tr>
+        <tr>
+          <td>NÚMERO MÉDIO ELEMENTOS NA FILA</td>
+          <td>
+            <figure>
+              <img src="img/mmmb/nmfila.png" alt="Minha Figura">
+            </figure>
+          </td>
+          <td><b>` + mmmbENq(ro, m, b, pzero) + `</b></td>
+        </tr>
+      </tbody>
+    </table>`;
+    return resultado;
   }
 
   function mmmProbabilizadeZero(ro, m) {
@@ -540,6 +621,53 @@
 
     return (1 / (denominador1 + denominador2));
 
+  }
+
+  function mmmbProbabilidadeZero(ro, m, b) {
+    var expr1 = ((1 - Math.pow(ro, b-m+1)) * (Math.pow(m * ro, m))) / (factorial(m) * (1 - ro));
+    var expr2 = 0;
+
+    for (var n=1; n<m-1; n++) {
+      expr2 += expr2 + ((Math.pow(m * ro, n)) / factorial(n))
+    }
+
+
+    return 1 / (1 + expr1 + expr2)
+  }
+
+  function mmmbProbabilidadeN(ro, m, n, pzero) {
+    if (n < m-1) {
+      return (Math.pow(m * ro, n) / factorial(n)) * pzero
+    } else {
+      return ((Math.pow(ro, n) * Math.pow(m, m)) / factorial(m)) * pzero
+    }
+  }
+
+  function mmmbEN(ro, m, b, pzero){
+    var expr1 = 0;
+
+    for (var n=1; n<=b; n++) {
+      expr1 = expr1 + (n * mmmbProbabilidadeN(ro, m, n, pzero))
+    }
+
+    return expr1
+  }
+
+  function mmmbENq(ro, m, b, pzero){
+    var expr1 = 0;
+
+    for (var n=m+1; n<=b; n++) {
+      expr1 = expr1 + ((n - m) * mmmbProbabilidadeN(ro, m, n, pzero))
+    }
+
+    return expr1
+  }
+
+  function factorial(n) {
+    var rval=1;
+    for (var i = 2; i <= n; i++)
+      rval = rval * i;
+    return rval;
   }
 
   function erlangC(a, n) {
@@ -577,5 +705,6 @@
   <div id="result"></div>
 
 </div>
+
 </body>
 </html>
